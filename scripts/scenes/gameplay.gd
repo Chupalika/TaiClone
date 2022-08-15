@@ -1,3 +1,4 @@
+class_name Gameplay
 extends Node
 
 signal new_marker(type, timing, skin)
@@ -119,10 +120,11 @@ func late_early_changed(new_value: int) -> void:
 	timing_indicator.visible = new_value > 0
 
 
-func load_func() -> void:
+func load_func(file_path := "") -> void:
 	var debug_text := $debug/debugtext as Label
 	debug_text.text = "Loading... [Checking File]"
-	var file_path := ($debug/temploadchart/LineEdit as LineEdit).text.replace("\\", "/")
+	if file_path == "":
+		file_path = ($debug/temploadchart/LineEdit as LineEdit).text.replace("\\", "/")
 	var f := File.new()
 	if not f.open(file_path, File.READ):
 		debug_text.text = "Loading... [Reading File]"
