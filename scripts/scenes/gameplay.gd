@@ -13,11 +13,11 @@ var _score := 0
 var _score_multiplier := 1.0
 var _skin := SkinManager.new()
 
+onready var drum_animation_tween := $DrumInteraction/DrumAnimationTween as Tween
 onready var music := $Music as AudioStreamPlayer
 onready var obj_container := $BarRight/HitPointOffset/ObjectContainer as Control
+onready var taiclone := $"/root" as Root
 onready var timing_indicator := $BarLeft/TimingIndicator as Label
-onready var hit_error := $UI/HitError as HitError
-onready var drum_animation_tween := $DrumInteraction/DrumAnimationTween as Tween
 
 
 func _input(event: InputEvent) -> void:
@@ -51,7 +51,7 @@ func _input(event: InputEvent) -> void:
 		var note = obj_container.get_child(i)
 		if note is BarLine or not note is HitObject:
 			continue
-		var new_inputs: Array = note.hit(inputs.duplicate(), _cur_time + (hit_error.inacc_timing if note is Note else 0.0))
+		var new_inputs: Array = note.hit(inputs.duplicate(), _cur_time + (taiclone.inacc_timing if note is Note else 0.0))
 		if inputs == new_inputs:
 			break
 		while true:
@@ -80,7 +80,7 @@ func _process(delta: float) -> void:
 		var note = obj_container.get_child(i)
 		if not note is HitObject:
 			continue
-		var score := str(note.miss_check(_cur_time - (hit_error.inacc_timing if note is Note else 0.0)))
+		var score := str(note.miss_check(_cur_time - (taiclone.inacc_timing if note is Note else 0.0)))
 		if note is BarLine or note is SpinnerWarn:
 			continue
 		if not score:
@@ -89,7 +89,7 @@ func _process(delta: float) -> void:
 			continue
 		_add_score(score)
 		if score == "miss":
-			emit_signal("new_marker", score, hit_error.inacc_timing, _skin)
+			emit_signal("new_marker", score, taiclone.inacc_timing, _skin)
 
 
 func auto_toggled(new_auto: bool) -> void:
@@ -284,8 +284,8 @@ func play_chart() -> void:
 
 func _add_score(type: String) -> void:
 	if type.is_valid_float():
-		var timing := float(type) - hit_error.inacc_timing
-		type = "accurate" if timing < hit_error.acc_timing else "inaccurate" if timing < hit_error.inacc_timing else "miss"
+		var timing := float(type) - taiclone.inacc_timing
+		type = "accurate" if timing < taiclone.acc_timing else "inaccurate" if timing < taiclone.inacc_timing else "miss"
 		emit_signal("new_marker", type, timing, _skin)
 
 	_score += int((150 if type == "inaccurate" else 300 if ["accurate", "finisher", "roll"].has(type) else 600 if type == "spinner" else 0) * _score_multiplier)
@@ -355,4 +355,4 @@ func _reset() -> void:
 	_add_score("")
 
 	get_tree().call_group_flags(SceneTree.GROUP_CALL_REALTIME, "HitObjects", "queue_free" if music.playing else "activate")
-	_cur_time = ($debug/SettingsPanel as SettingsPanel).global_offset
+	_cur_time = taiclone.global_offset
