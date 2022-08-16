@@ -19,6 +19,9 @@ onready var taiclone := $"/root" as Root
 
 
 func _ready() -> void:
+	if connect("volume_set", taiclone.get_node("VolumeControl"), "set_volume"):
+		push_warning("Attempted to connect SettingsPanel volume_set.")
+
 	# load config and all the variables
 	var config_file := ConfigFile.new()
 	if config_file.load(_config_path):
