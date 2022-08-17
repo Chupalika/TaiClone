@@ -24,22 +24,24 @@ func change_channel(channel: int, needs_visible := true) -> void:
 
 	for i in range(vols.size()):
 		var colour := Color.white if i == root.volume_changing else Color(1, 1, 1, 0.5)
-		var vol: CanvasItem = vols[i] # UNSAFE ArrayItem
+		var vol: CanvasItem = vols[i] # UNSAFE Variant
 
 		if vol.modulate == colour or not modulate.a:
 			vol.modulate = colour
 			continue
-		VOL_TWEENS[i] = _new_tween(VOL_TWEENS[i])
-		var _tween = VOL_TWEENS[i].tween_property(vol, "modulate", colour, 0.2) # UNSAFE ArrayItem
+		var tween := _new_tween(VOL_TWEENS[i])
+		var _tween = tween.tween_property(vol, "modulate", colour, 0.2)
+		VOL_TWEENS[i] = tween # UNSAFE ArrayItem
 
 	# appearance_timeout function
 	if modulate.a < 1:
+		show()
 		_self_tween = _new_tween(_self_tween)
 		var _tween := _self_tween.tween_property(self, "modulate", Color.white, 0.25)
 
 	timer = get_tree().create_timer(2)
 	if timer.connect("timeout", self, "timeout"):
-		push_warning("Attempted to connect timer timeout.")
+		push_warning("Attempted to connect Timer timeout.")
 
 
 func change_volume(amount: float) -> void:
@@ -58,7 +60,7 @@ func set_volume(channel: int, amount: float, needs_tween := false) -> void:
 	AudioServer.set_bus_volume_db(channel, linear2db(amount))
 
 	amount = round(amount * 100)
-	var vol: CanvasItem = vols[channel] # UNSAFE ArrayItem
+	var vol: CanvasItem = vols[channel] # UNSAFE Variant
 	(vol.get_node("Percentage") as Label).text = str(amount)
 
 	var progress := vol.get_node("TextureProgress") as TextureProgress
@@ -66,14 +68,16 @@ func set_volume(channel: int, amount: float, needs_tween := false) -> void:
 		progress.value = amount
 		return
 
-	PROGRESS_TWEENS[channel] = _new_tween(PROGRESS_TWEENS[channel]) # UNSAFE ArrayItem
-	var _tween = PROGRESS_TWEENS[channel].tween_property(progress, "value", amount, 0.2) # UNSAFE ArrayItem
+	var tween: SceneTreeTween = _new_tween(PROGRESS_TWEENS[channel]) # UNSAFE Variant
+	var _tween = tween.tween_property(progress, "value", amount, 0.2)
+	PROGRESS_TWEENS[channel] = tween # UNSAFE ArrayItem
 
 
 func timeout() -> void:
 	if timer.time_left <= 0:
 		_self_tween = _new_tween(_self_tween)
-		var _tween := _self_tween.tween_property(self, "modulate", Color.transparent, 1)
+		if _self_tween.tween_property(self, "modulate", Color.transparent, 1).connect("finished", self, "hide"):
+			push_warning("Attempted to connect PropertyTweener finish.")
 
 
 func _new_tween(old_tween: SceneTreeTween) -> SceneTreeTween:

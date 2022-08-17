@@ -273,7 +273,7 @@ text = "Save"
 [connection signal="pressed" from="V/Scroll/V/Keybinds/RightKat/Button" to="." method="button_pressed" binds= [ "RightKat" ]]
 [connection signal="item_selected" from="V/Scroll/V/ExtraDisplays/LateEarly/Options" to="." method="late_early"]
 [connection signal="toggled" from="V/Scroll/V/ExtraDisplays/HitError/Toggle" to="." method="hit_error"]
-[connection signal="item_selected" from="V/Scroll/V/Resolution/Options" to="." method="change_res"]
+[connection signal="item_selected" from="V/Scroll/V/Resolution/Options" to="." method="res_changed"]
 [connection signal="toggled" from="V/Scroll/V/Resolution/Fullscreen/Toggle" to="." method="toggle_fullscreen"]
 [connection signal="text_changed" from="V/Scroll/V/Offset/LineEdit" to="." method="change_offset"]
 [connection signal="pressed" from="V/SaveButton" to="." method="save_settings"]

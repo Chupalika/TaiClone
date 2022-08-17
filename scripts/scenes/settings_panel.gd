@@ -41,17 +41,16 @@ func _ready() -> void:
 	call_deferred("hit_error", bool(config_file.get_value("Display", "HitError", 1)))
 
 	var resolution := Vector2(config_file.get_value("Display", "ResolutionX", 1920), config_file.get_value("Display", "ResolutionY", 1080))
-	OS.window_size = resolution
-	OS.window_resizable = true
+	change_res(resolution)
 
 	var resolutions := [["16:9 | 1920x1080", Vector2(1920, 1080)], ["16:9 | 1280x720", Vector2(1280, 720)], ["16:9 | 1024x576", Vector2(1024, 576)], [], ["4:3 | 1280x1024", Vector2(1280, 1024)], ["4:3 | 1024x768", Vector2(1024, 768)], [], ["5:4 | 1025x820", Vector2(1025, 820)]]
 	for i in resolutions.size():
-		var item: Array = resolutions[i] # UNSAFE ArrayItem
+		var item: Array = resolutions[i] # UNSAFE Variant
 		if item.empty():
 			dropdown.add_separator()
 		else:
 			dropdown.add_item(str(item[0]))
-			var item_resolution: Vector2 = item[1] # UNSAFE ArrayItem
+			var item_resolution: Vector2 = item[1] # UNSAFE Variant
 			dropdown.set_item_metadata(int(i), item_resolution)
 			if item_resolution == resolution:
 				dropdown.select(int(i))
@@ -85,10 +84,11 @@ func change_offset(new_value: String) -> void:
 	emit_signal("offset_changed", taiclone.global_offset)
 
 
-func change_res(index: int) -> void:
-	print_debug("Resolution changed to %s." % dropdown.get_item_text(index))
-	var new_size: Vector2 = dropdown.get_item_metadata(index) # UNSAFE Variant
+func change_res(new_size: Vector2) -> void:
+	OS.window_resizable = false
 	OS.window_size = new_size
+	taiclone.size = new_size
+	OS.window_resizable = true
 
 
 func hit_error(new_visible: bool) -> void:
@@ -99,6 +99,11 @@ func hit_error(new_visible: bool) -> void:
 func late_early(new_value: int) -> void:
 	late_early_drop.select(new_value)
 	emit_signal("late_early_changed", new_value)
+
+
+func res_changed(index: int) -> void:
+	var new_size: Vector2 = dropdown.get_item_metadata(index) # UNSAFE Variant
+	change_res(new_size)
 
 
 func save_settings() -> void:

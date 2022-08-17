@@ -60,7 +60,7 @@ margin_bottom = 138.0
 size_flags_vertical = 3
 size_flags_stretch_ratio = 3.0
 
-[node name="Music" type="VBoxContainer" parent="Bars/Specifics"]
+[node name="Music" type="VBoxContainer" parent="Bars/Specifics" groups=["Mouse"]]
 margin_right = 137.0
 margin_bottom = 138.0
 size_flags_horizontal = 3
@@ -99,7 +99,7 @@ size_flags_horizontal = 4
 custom_fonts/font = SubResource( 4 )
 text = "MUSIC"
 
-[node name="SFX" type="VBoxContainer" parent="Bars/Specifics"]
+[node name="SFX" type="VBoxContainer" parent="Bars/Specifics" groups=["Mouse"]]
 margin_left = 141.0
 margin_right = 278.0
 margin_bottom = 138.0
@@ -139,7 +139,7 @@ size_flags_horizontal = 4
 custom_fonts/font = SubResource( 4 )
 text = "SFX"
 
-[node name="Master" type="VBoxContainer" parent="Bars"]
+[node name="Master" type="VBoxContainer" parent="Bars" groups=["Mouse"]]
 margin_top = 142.0
 margin_right = 278.0
 margin_bottom = 373.0

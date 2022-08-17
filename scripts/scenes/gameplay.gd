@@ -1,7 +1,7 @@
 class_name Gameplay
 extends Node
 
-signal new_marker(type, timing, skin)
+signal marker_added(type, timing, skin)
 
 var _accurate_count := 0
 var _auto := false
@@ -90,7 +90,7 @@ func _process(delta: float) -> void:
 			continue
 		_add_score(score)
 		if score == "miss":
-			emit_signal("new_marker", score, taiclone.inacc_timing, _skin)
+			emit_signal("marker_added", score, taiclone.inacc_timing, _skin)
 
 
 func auto_toggled(new_auto: bool) -> void:
@@ -148,7 +148,7 @@ func load_func(file_path := "") -> void:
 			# load_and_process_background function
 			var folder_path := file_path.get_base_dir()
 			var events = current_chart_data["Events"]
-			var bg_file_name := str(events[events.find("//Background and Video events") + 1]) # UNSAFE ArrayItem
+			var bg_file_name: String = events[events.find("//Background and Video events") + 1] # UNSAFE Variant
 			var bg_file_path := folder_path.plus_file(bg_file_name.split(",")[2].replace("\"", ""))
 			var image := Image.new()
 			if image.load(bg_file_path):
@@ -201,10 +201,10 @@ func load_func(file_path := "") -> void:
 
 				# check sv
 				if not current_timing_data.empty():
-					var next_timing := float(current_timing_data[0][0]) # UNSAFE ArrayItem
+					var next_timing: float = current_timing_data[0][0] # UNSAFE Variant
 					while next_timing <= time:
 						next_barline = _barline(total_cur_sv, next_timing, next_barline, f, cur_bpm)
-						var timing: Array = current_timing_data.pop_front() # UNSAFE ArrayItem
+						var timing: Array = current_timing_data.pop_front() # UNSAFE Variant
 						if int(timing[1]):
 							cur_bpm = float(timing[2])
 							next_barline = float(timing[0])
@@ -288,7 +288,7 @@ func _add_score(type: String) -> void:
 	if type.is_valid_float():
 		var timing := float(type) - taiclone.inacc_timing
 		type = "accurate" if timing < taiclone.acc_timing else "inaccurate" if timing < taiclone.inacc_timing else "miss"
-		emit_signal("new_marker", type, timing, _skin)
+		emit_signal("marker_added", type, timing, _skin)
 
 	_score += int((150 if type == "inaccurate" else 300 if ["accurate", "finisher", "roll"].has(type) else 600 if type == "spinner" else 0) * _score_multiplier)
 

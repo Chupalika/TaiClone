@@ -1,7 +1,7 @@
 class_name HitError
 extends Control
 
-signal change_indicator(timing)
+signal indicator_changed(timing)
 
 onready var taiclone := $"/root" as Root
 
@@ -60,4 +60,4 @@ func new_marker(type: String, timing: float, skin: SkinManager) -> void:
 
 
 	if type == "inaccurate":
-		emit_signal("change_indicator", timing)
+		emit_signal("indicator_changed", timing)

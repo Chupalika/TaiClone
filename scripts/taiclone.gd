@@ -1,6 +1,7 @@
 class_name TaiClone
 extends SceneTree
 
+var _mouse: Control
 var _root: Root
 
 
@@ -10,6 +11,7 @@ func _init() -> void:
 	root.get_child(0).queue_free()
 	var volume_control := preload("res://game/scenes/volume_control.tscn").instance() as VolumeControl
 	volume_control.modulate = Color.transparent
+	volume_control.hide()
 	root.add_child(volume_control)
 	root.add_child(preload("res://game/scenes/gameplay.tscn").instance())
 
@@ -19,38 +21,47 @@ func _drop_files(files: PoolStringArray, _from_screen: int) -> void:
 
 
 func _input_event(event) -> void:
-	if event is InputEventMouseMotion:
-		return
 	#set_input_as_handled()
 	if event is InputEventWithModifiers:
 		var w_event: InputEventWithModifiers = event # UNSAFE Variant
-		if w_event.alt and w_event.is_pressed():
-			var changing := _root.volume_changing
-			var vol_difference := 0.01 if w_event.control else 0.05
-			var volume_control := root.get_node("VolumeControl") as VolumeControl
-			if event is InputEventKey:
-				var k_event: InputEventKey = event # UNSAFE Variant
-				match k_event.scancode:
-					KEY_DOWN:
+		var vol_difference := 0.01 if w_event.control else 0.05
+		var volume_control := root.get_node("VolumeControl") as VolumeControl
+		if event is InputEventKey and w_event.is_pressed():
+			var k_event: InputEventKey = event # UNSAFE Variant
+			match k_event.scancode:
+				KEY_DOWN:
+					if w_event.alt:
 						volume_control.change_volume(-vol_difference)
-						return
-					KEY_LEFT:
-						if not k_event.echo:
-							volume_control.change_channel(changing + 2, false)
-						return
-					KEY_RIGHT:
-						if not k_event.echo:
-							volume_control.change_channel(changing + 1, false)
-						return
-					KEY_UP:
+				KEY_LEFT:
+					if w_event.alt and not k_event.echo:
+						volume_control.change_channel(_root.volume_changing + 2, false)
+				KEY_RIGHT:
+					if w_event.alt and not k_event.echo:
+						volume_control.change_channel(_root.volume_changing + 1, false)
+				KEY_UP:
+					if w_event.alt:
 						volume_control.change_volume(vol_difference)
-						return
-			elif event is InputEventMouseButton:
-				var m_event: InputEventMouseButton = event # UNSAFE Variant
-				match m_event.button_index:
-					BUTTON_WHEEL_DOWN:
+		if event is InputEventMouseButton and w_event.is_pressed():
+			var b_event: InputEventMouseButton = event # UNSAFE Variant
+			match b_event.button_index:
+				BUTTON_WHEEL_DOWN:
+					if w_event.alt:
 						volume_control.change_volume(-vol_difference)
-						return
-					BUTTON_WHEEL_UP:
+				BUTTON_WHEEL_UP:
+					if w_event.alt:
 						volume_control.change_volume(vol_difference)
-						return
+		if event is InputEventMouseMotion:
+			var m_event: InputEventMouseMotion = event # UNSAFE Variant
+			if _mouse != null and not _is_hovered(_mouse, m_event.position):
+				_mouse.emit_signal("mouse_exited")
+				_mouse = null
+			var mouse := get_nodes_in_group("Mouse")
+			for i in range(mouse.size()):
+				var node: Control = mouse[i] # UNSAFE Variant
+				if _mouse == null and _is_hovered(node, m_event.position):
+					node.emit_signal("mouse_entered")
+					_mouse = node
+
+
+func _is_hovered(node: Control, mouse_position: Vector2) -> bool:
+	return node.get_global_rect().has_point(root.get_final_transform().affine_inverse().basis_xform(mouse_position)) and node.is_visible_in_tree()

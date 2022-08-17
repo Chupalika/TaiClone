@@ -428,8 +428,8 @@ bus = "SFX"
 
 [node name="DrumAnimationTween" type="Tween" parent="DrumInteraction"]
 
-[connection signal="new_marker" from="." to="UI/HitError" method="new_marker"]
-[connection signal="change_indicator" from="UI/HitError" to="." method="change_indicator"]
+[connection signal="marker_added" from="." to="UI/HitError" method="new_marker"]
+[connection signal="indicator_changed" from="UI/HitError" to="." method="change_indicator"]
 [connection signal="pressed" from="debug/temploadchart/LoadButton" to="." method="load_func"]
 [connection signal="pressed" from="debug/temploadchart/PlayButton" to="." method="play_chart"]
 [connection signal="toggled" from="debug/temploadchart/AutoToggle" to="." method="auto_toggled"]
