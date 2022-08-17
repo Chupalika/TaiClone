@@ -14,6 +14,11 @@ func _init() -> void:
 	volume_control.hide()
 	root.add_child(volume_control)
 	root.add_child(preload("res://game/scenes/gameplay.tscn").instance())
+	var settings_panel := root.get_node("Gameplay/debug/SettingsPanel") as SettingsPanel
+	if root.connect("size_changed", settings_panel, "save_settings", [], CONNECT_DEFERRED):
+		push_warning("Attempted to connect Root size_changed.")
+	if volume_control.connect("volume_changed", settings_panel, "save_settings"):
+		push_warning("Attempted to connect VolumeControl volume_changed.")
 
 
 func _drop_files(files: PoolStringArray, _from_screen: int) -> void:

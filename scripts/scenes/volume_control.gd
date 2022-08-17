@@ -1,6 +1,8 @@
 class_name VolumeControl
 extends CanvasItem
 
+signal volume_changed
+
 const PROGRESS_TWEENS := []
 const VOL_TWEENS := []
 
@@ -54,6 +56,7 @@ func change_volume(amount: float) -> void:
 	var change_sound := $ChangeSound as AudioStreamPlayer
 	change_sound.pitch_scale = channel_volume / 2 + 1
 	change_sound.play()
+	emit_signal("volume_changed")
 
 
 func set_volume(channel: int, amount: float, needs_tween := false) -> void:
