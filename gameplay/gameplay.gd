@@ -17,6 +17,9 @@ signal marker_added(type, timing, indicate)
 var _kiai_timing_points := []
 
 ## Comment
+var _line_data := []
+
+## Comment
 var _f := File.new()
 
 ## Comment
@@ -42,6 +45,9 @@ var _auto_left := true
 
 ## Comment
 var _in_kiai := false
+
+## Comment
+var _cur_bpm := -1.0
 
 ## Comment
 var _cur_time := 0.0
@@ -124,70 +130,9 @@ func _ready() -> void:
 	root_viewport.charter = _f.get_line()
 	root_viewport.difficulty_name = _f.get_line()
 	root_viewport.title = _f.get_line()
-
-	## Comment
-	var cur_bpm := -1.0
-
-	while _f.get_position() < _f.get_len():
-		## Comment
-		var line_data := _f.get_csv_line()
-
-		## Comment
-		var timing := float(line_data[0]) + root_viewport.global_offset / 1000.0
-
-		_last_note_time = timing
-
-		## Comment
-		var current_kiai := false
-
-		## Comment
-		var total_cur_sv := float(line_data[1]) * cur_bpm * 5.7
-
-		match int(line_data[2]):
-			ChartLoader.NoteType.BARLINE:
-				## Comment
-				var hit_object := root_viewport.bar_line_object.instance() as BarLine
-
-				hit_object.change_properties(timing, total_cur_sv)
-				add_object(hit_object)
-
-			ChartLoader.NoteType.DON, ChartLoader.NoteType.KAT:
-				## Comment
-				var hit_object := root_viewport.note_object.instance() as Note
-
-				hit_object.change_properties(timing, total_cur_sv, int(line_data[2]) == int(ChartLoader.NoteType.KAT), bool(int(line_data[3])))
-				add_object(hit_object)
-				GlobalTools.send_signal(self, "new_marker_added", hit_object, "add_marker")
-
-			ChartLoader.NoteType.ROLL:
-				## Comment
-				var hit_object := root_viewport.roll_object.instance() as Roll
-
-				hit_object.change_properties(timing, total_cur_sv, float(line_data[3]), bool(int(line_data[4])), cur_bpm)
-				add_object(hit_object)
-
-			ChartLoader.NoteType.SPINNER:
-				## Comment
-				var hit_object := root_viewport.spinner_warn_object.instance() as SpinnerWarn
-
-				hit_object.change_properties(timing, total_cur_sv, float(line_data[3]), cur_bpm)
-				add_object(hit_object)
-				GlobalTools.send_signal(self, "object_added", hit_object, "add_object")
-
-			ChartLoader.NoteType.TIMING_POINT:
-				cur_bpm = float(line_data[1])
-				if bool(int(line_data[3])) != current_kiai:
-					current_kiai = not current_kiai
-					if _next_kiai < 0:
-						_next_kiai = timing
-
-					else:
-						_kiai_timing_points.append(timing)
-
-	get_tree().call_group("HitObjects", "apply_skin")
-	get_tree().call_group("HitObjects", "connect", "audio_played", drum_visual, "play_audio", [], SceneTree.GROUP_CALL_REALTIME)
-	get_tree().call_group("HitObjects", "connect", "score_added", self, "add_score")
-	_load_finish("Done!")
+	_line_data = _f.get_csv_line()
+	_load_more(10, false)
+	debug_text.text = "Done!"
 
 
 func _process(_delta: float) -> void:
@@ -233,6 +178,8 @@ func _process(_delta: float) -> void:
 
 			elif hit_auto:
 				_auto_left = not _auto_left
+
+	_load_more(_cur_time + 10, true)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -428,6 +375,7 @@ func toggle_settings() -> void:
 
 ## Comment
 func _end_chart() -> void:
+	_f.close()
 	root_viewport.add_blackout(root_viewport.results)
 	_active = false
 
@@ -444,6 +392,69 @@ func _hit_notify_animation() -> void:
 func _load_finish(new_text: String) -> void:
 	_f.close()
 	debug_text.text = new_text
+
+
+## Comment
+func _load_more(max_time: float, activate_objects: bool) -> void:
+	while _line_data != [""]:
+		print(_line_data)
+
+		## Comment
+		var timing := float(_line_data[0]) + root_viewport.global_offset / 1000.0
+
+		if timing > max_time:
+			break
+
+		## Comment
+		var current_kiai := false
+
+		## Comment
+		var total_cur_sv := float(_line_data[1]) * _cur_bpm * 5.7
+
+		match int(_line_data[2]):
+			ChartLoader.NoteType.BARLINE:
+				## Comment
+				var hit_object := root_viewport.bar_line_object.instance() as BarLine
+
+				hit_object.change_properties(timing, total_cur_sv)
+				add_object(hit_object)
+
+			ChartLoader.NoteType.DON, ChartLoader.NoteType.KAT:
+				## Comment
+				var hit_object := root_viewport.note_object.instance() as Note
+
+				hit_object.change_properties(timing, total_cur_sv, int(_line_data[2]) == int(ChartLoader.NoteType.KAT), bool(int(_line_data[3])))
+				add_object(hit_object)
+				GlobalTools.send_signal(self, "new_marker_added", hit_object, "add_marker")
+
+			ChartLoader.NoteType.ROLL:
+				## Comment
+				var hit_object := root_viewport.roll_object.instance() as Roll
+
+				hit_object.change_properties(timing, total_cur_sv, float(_line_data[3]), bool(int(_line_data[4])), _cur_bpm)
+				add_object(hit_object)
+
+			ChartLoader.NoteType.SPINNER:
+				## Comment
+				var hit_object := root_viewport.spinner_warn_object.instance() as SpinnerWarn
+
+				hit_object.change_properties(timing, total_cur_sv, float(_line_data[3]), _cur_bpm)
+				add_object(hit_object)
+				GlobalTools.send_signal(self, "object_added", hit_object, "add_object")
+
+			ChartLoader.NoteType.TIMING_POINT:
+				_cur_bpm = float(_line_data[1])
+				if bool(int(_line_data[3])) != current_kiai:
+					current_kiai = not current_kiai
+					if _next_kiai < 0:
+						_next_kiai = timing
+
+					else:
+						_kiai_timing_points.append(timing)
+
+		_line_data = _f.get_csv_line()
+
+	get_tree().call_group("HitObjects", "hit_object_signals", self, drum_visual, activate_objects)
 
 
 ## attempts to skip waiting at the beginning of charts, going right before the first note

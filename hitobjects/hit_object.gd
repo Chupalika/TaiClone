@@ -62,6 +62,15 @@ func activate() -> void:
 	state = int(State.ACTIVE)
 
 
+func hit_object_signals(gameplay_node: Node, drum_node: Node, activate_objects: bool) -> void:
+	if not is_connected("audio_played", drum_node, "play_audio"):
+		apply_skin()
+		GlobalTools.send_signal(drum_node, "audio_played", self, "play_audio")
+		GlobalTools.send_signal(gameplay_node, "score_added", self, "add_score")
+		if activate_objects:
+			activate()
+
+
 ## Apply a skin to this [HitObject]. Intended to be implemented by child classes.
 func apply_skin() -> void:
 	pass
