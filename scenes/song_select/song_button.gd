@@ -42,6 +42,8 @@ func _pressed() -> void:
 
 	get_tree().call_group("Songs", "change_song", chart.folder_path, middle_index)
 	root_viewport.chart = chart
+	root_viewport.music.set_stream(AudioLoader.load_file(chart.folder_path + "/" + chart.audio_file_name))
+	root_viewport.bg_changed(GlobalTools.get_image_texture(chart.folder_path + "/" + chart.bg_file_name))
 
 
 ## Applies the [member root_viewport]'s [SkinManager] to this [Node]. This method is seen in all [Node]s in the "Skinnables" group.
